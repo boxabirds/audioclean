@@ -10,6 +10,7 @@ ffmpeg-python = "*"
 silero-vad = "*"
 onnxruntime = "*"
 numpy = "*"
+scipy = "*"
 
 [dev-packages]
 
