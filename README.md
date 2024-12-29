@@ -1,4 +1,3 @@
-```markdown
 # MOV Cleaner
 
 This tool processes MOV video files to remove silent parts and optionally enhance the audio. It uses Silero VAD (Voice Activity Detection) to identify speech segments and replaces non-speech parts with silence.
