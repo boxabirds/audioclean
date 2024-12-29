@@ -1,6 +1,6 @@
 # MOV Cleaner
 
-This tool processes MOV video files to remove silent parts and optionally enhance the audio. It uses Silero VAD (Voice Activity Detection) to identify speech segments and replaces non-speech parts with silence.
+This tool processes MOV video files to remove silent parts and optionally filter out low frequency bangs while talking too (high pass filter). It uses Silero VAD (Voice Activity Detection) to identify speech segments and replaces non-speech parts with silence.
 
 **Note:** This project uses `pipenv` for managing dependencies and the Python version. Ensure you have `pipenv` installed before proceeding. You can install it using:
 
@@ -43,7 +43,7 @@ pipenv shell
 Then, execute the script with the required arguments:
 
 ```bash
-python your_script_name.py <input_mov_file> [options]
+python main.py <input_mov_file> [options]
 ```
 
 Replace `<input_mov_file>` with the path to your MOV video file.
@@ -57,17 +57,17 @@ Replace `<input_mov_file>` with the path to your MOV video file.
     * To specify a frequency, use `--filter <frequency_in_Hz>`. It's recommended to keep the frequency between 100 and 2000 Hz.
 
     ```bash
-    python your_script_name.py input.mov --filter
+    python main.py input.mov --filter
     ```
 
     ```bash
-    python your_script_name.py input.mov --filter 300
+    python main.py input.mov --filter 300
     ```
 
 * **`--punch`**: Applies a compressor effect to the audio to make the speech more prominent.
 
     ```bash
-    python your_script_name.py input.mov --punch
+    python main.py input.mov --punch
     ```
 
 ### Examples
@@ -75,7 +75,7 @@ Replace `<input_mov_file>` with the path to your MOV video file.
 * **Basic cleaning (remove silence):**
 
    ```bash
-   python your_script_name.py my_video.mov
+   python main.py my_video.mov
    ```
 
    This will create a new file named `my_video-cleaned.mov` in the same directory as the input file.
@@ -83,25 +83,25 @@ Replace `<input_mov_file>` with the path to your MOV video file.
 * **Cleaning with a high-pass filter at the default frequency (250 Hz):**
 
    ```bash
-   python your_script_name.py my_video.mov --filter
+   python main.py my_video.mov --filter
    ```
 
 * **Cleaning with a high-pass filter at 400 Hz:**
 
    ```bash
-   python your_script_name.py my_video.mov --filter 400
+   python main.py my_video.mov --filter 400
    ```
 
 * **Cleaning and applying the compressor:**
 
    ```bash
-   python your_script_name.py my_video.mov --punch
+   python main.py my_video.mov --punch
    ```
 
 * **Cleaning, applying a high-pass filter, and the compressor:**
 
    ```bash
-   python your_script_name.py my_video.mov --filter 350 --punch
+   python main.py my_video.mov --filter 350 --punch
    ```
 
 ### Output
