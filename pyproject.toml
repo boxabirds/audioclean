@@ -1,0 +1,20 @@
+[project]
+name = "audioclean"
+version = "0.1.0"
+description = "Audio cleaning tool using VAD"
+requires-python = ">=3.10"
+dependencies = [
+    "pydub",
+    "moviepy",
+    "ffmpeg-python",
+    "silero-vad",
+    "onnxruntime",
+    "numpy",
+    "scipy",
+    "torch",
+    "soundfile>=0.13.1",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

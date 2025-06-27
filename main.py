@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 import torch
 from pydub import AudioSegment
-from moviepy import VideoFileClip, AudioFileClip
 import os
 import numpy as np
 from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
@@ -11,7 +10,7 @@ from scipy.io import wavfile
 
 def extract_audio(video_path, temp_wav_path):
     """Extract audio from MOV file and save as WAV"""
-    command = f"ffmpeg -i {video_path} -ab 160k -ac 2 -ar 44100 -vn {temp_wav_path}"
+    command = f"ffmpeg -y -i {video_path} -ab 160k -ac 2 -ar 44100 -vn {temp_wav_path}"
     os.system(command)
 
 def apply_compressor(audio_data, sample_rate, threshold=-10, ratio=4, attack=0.02, release=0.1, knee=5, makeup_gain=0):
@@ -98,7 +97,7 @@ def process_audio_with_vad(wav_path, output_wav_path, hpf_freq=None, punch=False
         temp_filtered_path = Path(output_wav_path).with_suffix('.filtered.wav')
         stream = ffmpeg.input(str(output_wav_path))
         stream = ffmpeg.output(stream, str(temp_filtered_path), af=f"highpass=f={hpf_freq}")
-        ffmpeg.run(stream)
+        ffmpeg.run(stream, overwrite_output=True)
         os.replace(temp_filtered_path, output_wav_path)
     
     # Apply compressor if punch is enabled
@@ -110,10 +109,12 @@ def process_audio_with_vad(wav_path, output_wav_path, hpf_freq=None, punch=False
 def combine_video_and_audio(video_path, audio_path, output_path):
     """Combine processed audio with original video"""
     print(f"Combining {video_path} with {audio_path} to {output_path}")
-    video_clip = VideoFileClip(str(video_path))
-    audio_clip = AudioFileClip(str(audio_path))
-    final_clip = video_clip.with_audio(audio_clip)
-    final_clip.write_videofile(str(output_path), codec="libx264", audio_codec="aac")
+    
+    # Use ffmpeg directly to avoid MoviePy metadata parsing issues
+    stream = ffmpeg.input(str(video_path))
+    audio = ffmpeg.input(str(audio_path))
+    stream = ffmpeg.output(stream, audio, str(output_path), vcodec='copy', acodec='aac')
+    ffmpeg.run(stream, overwrite_output=True)
 
 def main(input_mov_path, output_mov_path, hpf_freq=None, punch=False):
     temp_wav_path = Path(input_mov_path).with_suffix('.wav')
