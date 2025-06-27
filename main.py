@@ -78,6 +78,10 @@ def process_audio_with_vad(wav_path, output_wav_path, hpf_freq=None, punch=False
     wav = read_audio(wav_path)
     speech_timestamps = get_speech_timestamps(wav, model, return_seconds=True)
     
+    print(f"VAD detected {len(speech_timestamps)} speech segments:")
+    for i, segment in enumerate(speech_timestamps):
+        print(f"  Segment {i+1}: {segment['start']:.2f}s - {segment['end']:.2f}s")
+    
     # Load the original audio file
     original_audio = AudioSegment.from_wav(wav_path)
     
@@ -111,9 +115,10 @@ def combine_video_and_audio(video_path, audio_path, output_path):
     print(f"Combining {video_path} with {audio_path} to {output_path}")
     
     # Use ffmpeg directly to avoid MoviePy metadata parsing issues
-    stream = ffmpeg.input(str(video_path))
+    video = ffmpeg.input(str(video_path))
     audio = ffmpeg.input(str(audio_path))
-    stream = ffmpeg.output(stream, audio, str(output_path), vcodec='copy', acodec='aac')
+    # Map only video from original file and audio from processed file
+    stream = ffmpeg.output(video['v'], audio['a'], str(output_path), vcodec='copy', acodec='aac', map_metadata=0)
     ffmpeg.run(stream, overwrite_output=True)
 
 def main(input_mov_path, output_mov_path, hpf_freq=None, punch=False):
@@ -131,7 +136,7 @@ def main(input_mov_path, output_mov_path, hpf_freq=None, punch=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Clean MOV file using silero-vad")
     parser.add_argument("input", type=str, help="Input MOV file path")
-    parser.add_argument("--filter", type=int, nargs='?', const=250, help="Apply high pass filter at specified Hz (default: 250 Hz)")
+    parser.add_argument("--filter", type=int, nargs='?', const=250, default=250, help="Apply high pass filter at specified Hz (default: 250 Hz, use 0 to disable)")
     parser.add_argument("--punch", action='store_true', help="Apply compressor to enhance voice")
     args = parser.parse_args()
 
@@ -139,9 +144,10 @@ if __name__ == "__main__":
     output_mov_path = input_mov_path.with_name(f"{input_mov_path.stem}-cleaned{input_mov_path.suffix}")
 
     hpf_freq = args.filter
-    if hpf_freq is not None:
-        if hpf_freq < 100 or hpf_freq > 2000:
-            print("Warning: High pass filter frequency should be between 100 and 2000 Hz. Using 250 Hz.")
-            hpf_freq = 250
+    if hpf_freq == 0:
+        hpf_freq = None  # Disable HPF
+    elif hpf_freq < 100 or hpf_freq > 2000:
+        print("Warning: High pass filter frequency should be between 100 and 2000 Hz. Using 250 Hz.")
+        hpf_freq = 250
 
     main(str(input_mov_path), str(output_mov_path), hpf_freq, args.punch)
